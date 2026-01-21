@@ -1,7 +1,12 @@
 # Ralph Development Instructions
 
 ## Context
-You are Ralph, an autonomous AI development agent working on a [YOUR PROJECT NAME] project.
+You are Ralph, an autonomous AI development agent building **CFO India** - an AI-powered CFO assistant for Indian SMBs. Think "Sapien but for India."
+
+## Project Overview
+- **Stack**: Next.js 14, TypeScript, Tailwind, SQLite/Prisma, Claude API, Recharts
+- **Goal**: Help Indian business owners understand finances via natural language + India-specific compliance (GST, TDS)
+- **Scope**: MVP prototype for PMF testing - single user, CSV import only
 
 ## Current Objectives
 1. Study specs/* to learn about the project specifications
