@@ -39,16 +39,20 @@ An AI-powered CFO assistant for Indian SMBs - "Sapien but for India". Simple pro
 - `specs/requirements.md` - Full requirements doc
 - `@fix_plan.md` - Task list
 
+## What's Done
+- [x] npm install
+- [x] Prisma setup (schema, generate, db push)
+- [x] Sample data seeded (260 transactions)
+- [x] Dashboard page with charts (`/dashboard`)
+- [x] KPI cards (Revenue, Expenses, Net Profit, Cash Balance)
+- [x] Dashboard API route
+
 ## What Still Needs Building
-1. Run `npm install`
-2. Set up Prisma (`npx prisma generate && npx prisma db push`)
-3. Seed sample data (`npm run db:seed`)
-4. Dashboard page with charts (`/dashboard`)
-5. Transactions page with CSV import (`/transactions`)
-6. GST summary page (`/gst`)
-7. Reports page (`/reports`)
-8. AI Chat page (`/chat`)
-9. API routes for data fetching
+1. GST summary page (`/gst`) - CGST/SGST/IGST breakdown
+2. Transactions page with CSV import (`/transactions`)
+3. AI Chat page (`/chat`) - mock responses
+4. Reports page (`/reports`) - P&L, Cash Flow
+5. TDS tracker
 
 ## To Resume This Project
 ```bash
@@ -65,7 +69,7 @@ npm run dev
 ```
 
 ## GitHub
-Repository: (will be added after creation)
+Repository: https://github.com/ishandate26-cmyk/cfo-india
 
 ## Commands for Claude
 When resuming, tell Claude:
