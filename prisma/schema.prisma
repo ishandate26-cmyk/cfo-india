@@ -1,0 +1,80 @@
+// CFO India - Database Schema
+// Using SQLite for prototype simplicity
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Main transaction model for all financial entries
+model Transaction {
+  id          String   @id @default(cuid())
+  date        DateTime
+  description String
+  amount      Float
+  type        String   // 'income' | 'expense'
+  category    String
+
+  // GST fields (India-specific)
+  gstRate     Float?   // 0, 5, 12, 18, 28
+  gstType     String?  // 'cgst_sgst' | 'igst'
+
+  // TDS fields (India-specific)
+  tdsSection  String?  // '194C', '194J', etc.
+  tdsRate     Float?
+
+  // Party details
+  partyName   String?
+  partyGstin  String?
+
+  // Metadata
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Indexes for common queries
+  @@index([date])
+  @@index([type])
+  @@index([category])
+}
+
+// Pre-defined categories for Indian businesses
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  type        String   // 'income' | 'expense'
+  description String?
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+// GST summary cache (updated periodically for performance)
+model GSTSummary {
+  id           String   @id @default(cuid())
+  period       String   // 'YYYY-MM' format
+  outputCGST   Float    @default(0)
+  outputSGST   Float    @default(0)
+  outputIGST   Float    @default(0)
+  inputCGST    Float    @default(0)
+  inputSGST    Float    @default(0)
+  inputIGST    Float    @default(0)
+  netLiability Float    @default(0)
+  updatedAt    DateTime @updatedAt
+
+  @@unique([period])
+}
+
+// TDS summary for compliance tracking
+model TDSSummary {
+  id          String   @id @default(cuid())
+  period      String   // 'YYYY-MM' format
+  section     String   // '194C', '194J', etc.
+  totalAmount Float    @default(0)
+  tdsDeducted Float    @default(0)
+  updatedAt   DateTime @updatedAt
+
+  @@unique([period, section])
+}
