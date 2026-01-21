@@ -52,6 +52,7 @@ An AI-powered CFO assistant for Indian SMBs. Think "Sapien but for India" - help
   - "How much GST do I owe this quarter?"
   - "Show me revenue trend"
   - "Am I profitable this year?"
+- [ ] **Use mock responses for now** (no real API calls - just realistic placeholder responses based on the data)
 - [ ] Context-aware responses with data from the system
 - [ ] Suggested follow-up questions
 
