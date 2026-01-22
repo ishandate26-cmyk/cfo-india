@@ -1,76 +1,85 @@
 # CFO India - Project Context
 
 ## What This Is
-An AI-powered CFO assistant for Indian SMBs - "Sapien but for India". Simple prototype to test PMF.
+AI-powered CFO assistant for Indian SMBs - "Sapien but for India". MVP prototype to test PMF.
 
 ## Project Location
 `/Users/ishandate/Documents/CFO/cfo-india`
 
+## GitHub
+https://github.com/ishandate26-cmyk/cfo-india
+
 ## Tech Stack
 - **Frontend**: Next.js 14, TypeScript, Tailwind CSS
-- **Database**: SQLite with Prisma ORM
+- **Database**: Supabase (PostgreSQL) - was SQLite for local dev
 - **Charts**: Recharts
-- **AI Chat**: Mock responses for now (no API costs)
+- **Analytics**: PostHog
+- **AI Chat**: Mock responses (no API costs)
 
-## Key Features (MVP)
-1. **Dashboard** - Revenue/Expenses charts, KPI cards, cash balance
-2. **GST Module** - CGST/SGST/IGST breakdown, liability calculator, filing reminders
-3. **P&L Statement** - Auto-categorized, period comparisons
-4. **Cash Flow** - Runway calculation
-5. **AI Chat** - Natural language questions (mock responses)
-6. **TDS Tracker** - Track deductions by section
-7. **CSV Import** - Upload transactions
+---
 
-## India-Specific Features
-- GST rates: 0%, 5%, 12%, 18%, 28%
-- GST types: CGST+SGST (intra-state), IGST (inter-state)
-- TDS sections: 194C, 194J, etc.
-- INR formatting with Lakhs/Crores option
-- DD/MM/YYYY date format
+## Credentials (DO NOT COMMIT)
 
-## Files Created So Far
-- `package.json` - Dependencies (Next.js, Prisma, Recharts, etc.)
-- `prisma/schema.prisma` - Database schema with Transaction, GSTSummary, TDSSummary models
-- `prisma/seed.ts` - Sample data seeder
-- `src/app/page.tsx` - Landing page with navigation
-- `src/app/layout.tsx` - Root layout
-- `src/lib/db.ts` - Database connection
-- `src/lib/utils.ts` - Utility functions
-- `specs/requirements.md` - Full requirements doc
-- `@fix_plan.md` - Task list
+### Supabase
+- URL: `https://koebimyyskzqmstigvvv.supabase.co`
+- Anon Key: `sb_publishable_UV7Dam3isa9d31RBgv5yEw_tp--DrKs`
+
+### PostHog
+- Key: `phc_SYveyiPeV02dw8toGkVpjwKwoJM8KT3anjoXqtXaF4Y`
+
+---
 
 ## What's Done
-- [x] npm install
-- [x] Prisma setup (schema, generate, db push)
-- [x] Sample data seeded (260 transactions)
-- [x] Dashboard page with charts (`/dashboard`)
-- [x] KPI cards (Revenue, Expenses, Net Profit, Cash Balance)
-- [x] Dashboard API route
+- [x] Landing page with navigation
+- [x] Dashboard (`/dashboard`) - KPI cards, Revenue/Expense charts, Cash trend
+- [x] GST Module (`/gst`) - CGST/SGST/IGST breakdown, filing reminders
+- [x] AI Chat (`/chat`) - Mock responses for finance questions
+- [x] Sample data seeder (260 transactions)
+- [x] Supabase integration (client + schema)
+- [x] PostHog analytics integration
+- [x] Sentry error tracking (config ready)
+- [x] Vercel config (vercel.json)
 
-## What Still Needs Building
-1. GST summary page (`/gst`) - CGST/SGST/IGST breakdown
-2. Transactions page with CSV import (`/transactions`)
-3. AI Chat page (`/chat`) - mock responses
-4. Reports page (`/reports`) - P&L, Cash Flow
-5. TDS tracker
+## What's Left (Optional)
+- [ ] Transactions page with CSV import (`/transactions`)
+- [ ] Reports page - P&L, Cash Flow (`/reports`)
+- [ ] TDS tracker page
+- [ ] Auth (Supabase Auth) - login/signup
+- [ ] Connect real data to Supabase (currently using local SQLite)
 
-## To Resume This Project
+---
+
+## Vercel Deployment
+
+Add these env vars in Vercel:
+```
+NEXT_PUBLIC_SUPABASE_URL = https://koebimyyskzqmstigvvv.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY = sb_publishable_UV7Dam3isa9d31RBgv5yEw_tp--DrKs
+NEXT_PUBLIC_POSTHOG_KEY = phc_SYveyiPeV02dw8toGkVpjwKwoJM8KT3anjoXqtXaF4Y
+```
+
+---
+
+## Key Files
+| File | Purpose |
+|------|---------|
+| `src/app/dashboard/page.tsx` | Dashboard with charts |
+| `src/app/gst/page.tsx` | GST summary page |
+| `src/app/chat/page.tsx` | AI chat interface |
+| `src/lib/supabase.ts` | Supabase client |
+| `src/lib/posthog.ts` | Analytics |
+| `supabase-schema.sql` | DB schema (already run in Supabase) |
+| `prisma/seed.ts` | Sample data generator |
+
+---
+
+## To Run Locally
 ```bash
 cd /Users/ishandate/Documents/CFO/cfo-india
-# If dependencies not installed:
 npm install
-npx prisma generate
-npx prisma db push
-npm run db:seed
-
-# To run:
 npm run dev
 # Open http://localhost:3000
 ```
 
-## GitHub
-Repository: https://github.com/ishandate26-cmyk/cfo-india
-
-## Commands for Claude
-When resuming, tell Claude:
-"Continue building CFO India. Read CONTEXT.md and @fix_plan.md for current status."
+## To Resume with Claude
+Say: "Continue building CFO India. Read CONTEXT.md for status."
