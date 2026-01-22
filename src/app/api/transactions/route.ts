@@ -1,22 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
+import { supabase } from '@/lib/supabase'
+
+const DEMO_USER_ID = '00000000-0000-0000-0000-000000000001'
 
 export async function GET() {
   try {
-    const transactions = await prisma.transaction.findMany({
-      orderBy: { date: 'desc' },
-    })
+    const { data: transactions, error } = await supabase
+      .from('transactions')
+      .select('*')
+      .eq('user_id', DEMO_USER_ID)
+      .order('date', { ascending: false })
+
+    if (error) throw error
 
     return NextResponse.json({
-      transactions: transactions.map(t => ({
+      transactions: (transactions || []).map(t => ({
         id: t.id,
         date: t.date,
         description: t.description,
         amount: t.amount,
         type: t.type,
         category: t.category,
-        partyName: t.partyName,
-        gstRate: t.gstRate,
+        partyName: t.party_name,
+        gstRate: t.gst_rate,
       })),
     })
   } catch (error) {
@@ -70,31 +76,35 @@ export async function POST(request: NextRequest) {
       }
 
       return {
-        date: parsedDate,
+        date: parsedDate.toISOString().split('T')[0],
         description: t.description?.toString().slice(0, 500) || 'No description',
         amount: Math.abs(parseFloat(t.amount) || 0),
         type: t.type === 'income' ? 'income' : 'expense',
         category: t.category?.toString() || 'Other',
-        partyName: t.partyName?.toString() || null,
-        gstRate: t.gstRate ? parseFloat(t.gstRate) : null,
-        gstType: null,
-        tdsSection: null,
-        tdsRate: null,
-        partyGstin: null,
+        party_name: t.partyName?.toString() || null,
+        gst_rate: t.gstRate ? parseFloat(t.gstRate) : null,
+        gst_type: null,
+        tds_section: null,
+        tds_rate: null,
+        party_gstin: null,
+        user_id: DEMO_USER_ID,
       }
     }).filter(t => t.amount > 0)
 
-    // Create transactions in batches
-    const created = await prisma.transaction.createMany({
-      data: validTransactions,
-    })
+    // Insert transactions into Supabase
+    const { data, error } = await supabase
+      .from('transactions')
+      .insert(validTransactions)
+      .select()
+
+    if (error) throw error
 
     // Update GST summaries
     await updateGSTSummaries()
 
     return NextResponse.json({
       success: true,
-      count: created.count,
+      count: data?.length || 0,
     })
   } catch (error) {
     console.error('Failed to create transactions:', error)
@@ -117,9 +127,13 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    await prisma.transaction.delete({
-      where: { id },
-    })
+    const { error } = await supabase
+      .from('transactions')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', DEMO_USER_ID)
+
+    if (error) throw error
 
     // Update GST summaries
     await updateGSTSummaries()
@@ -137,7 +151,12 @@ export async function DELETE(request: NextRequest) {
 // Helper function to update GST summaries based on transactions
 async function updateGSTSummaries() {
   try {
-    const transactions = await prisma.transaction.findMany()
+    const { data: transactions, error } = await supabase
+      .from('transactions')
+      .select('*')
+      .eq('user_id', DEMO_USER_ID)
+
+    if (error) throw error
 
     // Group by month
     const monthlySummaries = new Map<string, {
@@ -149,8 +168,8 @@ async function updateGSTSummaries() {
       inputIGST: number
     }>()
 
-    for (const t of transactions) {
-      if (!t.gstRate || t.gstRate === 0) continue
+    for (const t of transactions || []) {
+      if (!t.gst_rate || t.gst_rate === 0) continue
 
       const date = new Date(t.date)
       const period = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
@@ -167,20 +186,17 @@ async function updateGSTSummaries() {
       }
 
       const summary = monthlySummaries.get(period)!
-      const gstAmount = (t.amount * t.gstRate) / 100
+      const gstAmount = (t.amount * t.gst_rate) / 100
 
       if (t.type === 'income') {
-        // Output GST (collected on sales)
-        if (t.gstType === 'igst') {
+        if (t.gst_type === 'igst') {
           summary.outputIGST += gstAmount
         } else {
-          // Default to CGST + SGST (split equally)
           summary.outputCGST += gstAmount / 2
           summary.outputSGST += gstAmount / 2
         }
       } else {
-        // Input GST (paid on purchases)
-        if (t.gstType === 'igst') {
+        if (t.gst_type === 'igst') {
           summary.inputIGST += gstAmount
         } else {
           summary.inputCGST += gstAmount / 2
@@ -199,28 +215,21 @@ async function updateGSTSummaries() {
         summary.inputSGST -
         summary.inputIGST
 
-      await prisma.gSTSummary.upsert({
-        where: { period },
-        update: {
-          outputCGST: Math.round(summary.outputCGST),
-          outputSGST: Math.round(summary.outputSGST),
-          outputIGST: Math.round(summary.outputIGST),
-          inputCGST: Math.round(summary.inputCGST),
-          inputSGST: Math.round(summary.inputSGST),
-          inputIGST: Math.round(summary.inputIGST),
-          netLiability: Math.round(netLiability),
-        },
-        create: {
+      await supabase
+        .from('gst_summaries')
+        .upsert({
           period,
-          outputCGST: Math.round(summary.outputCGST),
-          outputSGST: Math.round(summary.outputSGST),
-          outputIGST: Math.round(summary.outputIGST),
-          inputCGST: Math.round(summary.inputCGST),
-          inputSGST: Math.round(summary.inputSGST),
-          inputIGST: Math.round(summary.inputIGST),
-          netLiability: Math.round(netLiability),
-        },
-      })
+          output_cgst: Math.round(summary.outputCGST),
+          output_sgst: Math.round(summary.outputSGST),
+          output_igst: Math.round(summary.outputIGST),
+          input_cgst: Math.round(summary.inputCGST),
+          input_sgst: Math.round(summary.inputSGST),
+          input_igst: Math.round(summary.inputIGST),
+          net_liability: Math.round(netLiability),
+          user_id: DEMO_USER_ID,
+        }, {
+          onConflict: 'period,user_id',
+        })
     }
   } catch (error) {
     console.error('Failed to update GST summaries:', error)

@@ -34,6 +34,7 @@ https://github.com/ishandate26-cmyk/cfo-india
 - [x] Dashboard (`/dashboard`) - KPI cards, Revenue/Expense charts, Cash trend
 - [x] GST Module (`/gst`) - CGST/SGST/IGST breakdown, filing reminders
 - [x] AI Chat (`/chat`) - Mock responses for finance questions
+- [x] **Transactions (`/transactions`) - CSV import, drag-drop, column mapping, auto-categorization**
 - [x] Sample data seeder (260 transactions)
 - [x] Supabase integration (client + schema)
 - [x] PostHog analytics integration
@@ -41,7 +42,6 @@ https://github.com/ishandate26-cmyk/cfo-india
 - [x] Vercel config (vercel.json)
 
 ## What's Left (Optional)
-- [ ] Transactions page with CSV import (`/transactions`)
 - [ ] Reports page - P&L, Cash Flow (`/reports`)
 - [ ] TDS tracker page
 - [ ] Auth (Supabase Auth) - login/signup

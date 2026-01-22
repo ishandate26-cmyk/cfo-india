@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
+import { supabase } from '@/lib/supabase'
+
+const DEMO_USER_ID = '00000000-0000-0000-0000-000000000001'
 
 export async function GET() {
   try {
@@ -7,13 +9,19 @@ export async function GET() {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
     const startOfYear = new Date(now.getFullYear(), 0, 1)
 
-    // Get all transactions
-    const transactions = await prisma.transaction.findMany({
-      orderBy: { date: 'desc' },
-    })
+    // Get all transactions from Supabase
+    const { data: transactions, error } = await supabase
+      .from('transactions')
+      .select('*')
+      .eq('user_id', DEMO_USER_ID)
+      .order('date', { ascending: false })
+
+    if (error) throw error
+
+    const txns = transactions || []
 
     // This month's totals
-    const thisMonthTransactions = transactions.filter(
+    const thisMonthTransactions = txns.filter(
       (t) => new Date(t.date) >= startOfMonth
     )
     const thisMonthRevenue = thisMonthTransactions
@@ -24,7 +32,7 @@ export async function GET() {
       .reduce((sum, t) => sum + t.amount, 0)
 
     // This year's totals
-    const thisYearTransactions = transactions.filter(
+    const thisYearTransactions = txns.filter(
       (t) => new Date(t.date) >= startOfYear
     )
     const ytdRevenue = thisYearTransactions
@@ -35,10 +43,10 @@ export async function GET() {
       .reduce((sum, t) => sum + t.amount, 0)
 
     // Cash balance (simplified: total income - total expenses)
-    const totalIncome = transactions
+    const totalIncome = txns
       .filter((t) => t.type === 'income')
       .reduce((sum, t) => sum + t.amount, 0)
-    const totalExpenses = transactions
+    const totalExpenses = txns
       .filter((t) => t.type === 'expense')
       .reduce((sum, t) => sum + t.amount, 0)
     const cashBalance = totalIncome - totalExpenses
@@ -55,7 +63,7 @@ export async function GET() {
       const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0)
       const monthName = monthStart.toLocaleDateString('en-IN', { month: 'short', year: '2-digit' })
 
-      const monthTransactions = transactions.filter((t) => {
+      const monthTransactions = txns.filter((t) => {
         const date = new Date(t.date)
         return date >= monthStart && date <= monthEnd
       })
@@ -72,7 +80,7 @@ export async function GET() {
 
     // Top expense categories
     const expensesByCategory = new Map<string, number>()
-    transactions
+    txns
       .filter((t) => t.type === 'expense')
       .forEach((t) => {
         const current = expensesByCategory.get(t.category) || 0
@@ -86,14 +94,17 @@ export async function GET() {
 
     // GST liability (current month)
     const currentPeriod = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-    const gstSummary = await prisma.gSTSummary.findUnique({
-      where: { period: currentPeriod },
-    })
+    const { data: gstSummary } = await supabase
+      .from('gst_summaries')
+      .select('*')
+      .eq('period', currentPeriod)
+      .eq('user_id', DEMO_USER_ID)
+      .single()
 
-    const gstLiability = gstSummary?.netLiability || 0
+    const gstLiability = gstSummary?.net_liability || 0
 
     // Recent transactions
-    const recentTransactions = transactions.slice(0, 10).map((t) => ({
+    const recentTransactions = txns.slice(0, 10).map((t) => ({
       id: t.id,
       date: t.date,
       description: t.description,
