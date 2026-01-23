@@ -14,10 +14,11 @@ https://cfo-india.vercel.app
 
 ## Tech Stack
 - **Frontend**: Next.js 14, TypeScript, Tailwind CSS
-- **Database**: Supabase (PostgreSQL)
+- **Database**: Supabase (PostgreSQL) - RLS disabled for demo
 - **Charts**: Recharts
 - **Analytics**: PostHog
 - **AI Chat**: Mock responses (no API costs)
+- **Deployment**: Vercel (auto-deploys from GitHub)
 
 ---
 
@@ -32,52 +33,52 @@ https://cfo-india.vercel.app
 
 ---
 
+## Current Status: WORKING END-TO-END
+- CSV import works (Transactions page)
+- Data flows to Dashboard (charts populate)
+- Data flows to GST page
+- AI Chat responds based on real data
+- All APIs use Supabase (not SQLite)
+- All APIs are dynamic (no stale caching)
+
 ## What's Done
 - [x] Landing page with navigation
-- [x] Dashboard (`/dashboard`) - KPI cards, Revenue/Expense charts, Cash trend
+- [x] Dashboard (`/dashboard`) - KPI cards, Revenue/Expense charts, Cash trend, Top expenses pie
 - [x] GST Module (`/gst`) - CGST/SGST/IGST breakdown, filing reminders
-- [x] AI Chat (`/chat`) - Mock responses for finance questions
-- [x] **Transactions (`/transactions`) - CSV import, drag-drop, column mapping, auto-categorization**
-- [x] All APIs switched from Prisma/SQLite to Supabase
-- [x] Supabase schema created (tables + RLS policies)
+- [x] AI Chat (`/chat`) - Mock responses based on real Supabase data
+- [x] Transactions (`/transactions`) - CSV import, drag-drop, column mapping, auto-categorization
+- [x] All APIs on Supabase (dynamic, no caching)
 - [x] PostHog analytics integration
-- [x] Sentry error tracking (config ready)
-- [x] Vercel deployment live
+- [x] Vercel deployment live and working
 
-## BLOCKER - Fix Before Testing CSV Import
-**RLS (Row Level Security) is blocking inserts.** Run this SQL in Supabase SQL Editor:
-
-```sql
--- Disable RLS for demo mode (no auth yet)
-alter table transactions disable row level security;
-alter table gst_summaries disable row level security;
-alter table categories disable row level security;
-```
-
-Then try CSV import again at https://cfo-india.vercel.app/transactions
-
-## What's Left (Optional)
-- [ ] Reports page - P&L, Cash Flow (`/reports`)
+## What's Left (Build Next)
+- [ ] Reports page - P&L, Cash Flow statements (`/reports`)
 - [ ] TDS tracker page
-- [ ] Auth (Supabase Auth) - login/signup
-- [ ] Re-enable RLS after adding auth
+- [ ] Auth (Supabase Auth) - login/signup, then re-enable RLS
+- [ ] Connect real Claude API for chat (instead of mock)
+- [ ] Mobile responsiveness polish
+
+## Key Technical Decisions
+- RLS disabled + foreign key constraints dropped for demo mode (no auth yet)
+- Demo user ID: `00000000-0000-0000-0000-000000000001`
+- APIs use `force-dynamic` + `revalidate = 0` + no-cache headers
+- Auto-categorization uses regex pattern matching on descriptions
 
 ---
 
 ## Key Files
 | File | Purpose |
 |------|---------|
+| `src/app/transactions/page.tsx` | Transactions with CSV import |
 | `src/app/dashboard/page.tsx` | Dashboard with charts |
 | `src/app/gst/page.tsx` | GST summary page |
 | `src/app/chat/page.tsx` | AI chat interface |
-| `src/app/transactions/page.tsx` | **NEW** - Transactions with CSV import |
-| `src/app/api/transactions/route.ts` | Transactions API (Supabase) |
-| `src/app/api/dashboard/route.ts` | Dashboard API (Supabase) |
-| `src/app/api/gst/route.ts` | GST API (Supabase) |
-| `src/app/api/chat/route.ts` | Chat API (Supabase) |
+| `src/app/api/transactions/route.ts` | Transactions CRUD (Supabase) |
+| `src/app/api/dashboard/route.ts` | Dashboard data (Supabase) |
+| `src/app/api/gst/route.ts` | GST data (Supabase) |
+| `src/app/api/chat/route.ts` | Chat with mock AI (Supabase) |
 | `src/lib/supabase.ts` | Supabase client |
-| `src/lib/posthog.ts` | Analytics |
-| `supabase-schema.sql` | DB schema (already run in Supabase) |
+| `supabase-schema.sql` | DB schema |
 
 ---
 
@@ -91,9 +92,3 @@ npm run dev
 
 ## To Resume with Claude
 Say: "Continue building CFO India. Read CONTEXT.md for status."
-
-## Next Steps When You Wake Up
-1. Run the SQL above to disable RLS
-2. Test CSV import at /transactions
-3. Verify data shows in Dashboard and GST pages
-4. Optional: Add auth, then re-enable RLS
