@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { Upload, X, FileSpreadsheet, Trash2, Plus } from 'lucide-react'
 import { formatINR } from '@/components/KPICard'
+import { trackEvent } from '@/lib/posthog'
 
 interface Transaction {
   id: string
@@ -171,6 +172,7 @@ export default function TransactionsPage() {
       const headers = Object.keys(rows[0])
       setCsvHeaders(headers)
       setCsvData(rows)
+      trackEvent('csv_file_uploaded', { rows: rows.length, headers })
 
       // Auto-detect column mapping
       const autoMapping: ColumnMapping = {
@@ -240,15 +242,18 @@ export default function TransactionsPage() {
       })
 
       if (res.ok) {
+        trackEvent('csv_import_success', { count: newTransactions.length })
         setShowMappingModal(false)
         setCsvData([])
         setCsvHeaders([])
         fetchTransactions()
       } else {
+        trackEvent('csv_import_failed')
         alert('Failed to import transactions')
       }
     } catch (error) {
       console.error('Import error:', error)
+      trackEvent('csv_import_failed')
       alert('Failed to import transactions')
     }
   }
