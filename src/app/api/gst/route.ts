@@ -1,11 +1,12 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 
 export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 const DEMO_USER_ID = '00000000-0000-0000-0000-000000000001'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     // Get all GST summaries from Supabase
     const { data: gstSummaries, error: gstError } = await supabase

@@ -1,11 +1,12 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 
 export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 const DEMO_USER_ID = '00000000-0000-0000-0000-000000000001'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const now = new Date()
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
@@ -128,6 +129,10 @@ export async function GET() {
       monthlyData,
       topExpenses,
       recentTransactions,
+    }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate',
+      },
     })
   } catch (error) {
     console.error('Dashboard API error:', error)
